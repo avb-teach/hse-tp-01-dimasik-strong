@@ -1,5 +1,3 @@
-#!/bin/bash
-
 if [[ $# -lt 2 ]]; then
     echo "Usage: $0 /path/to/input_dir /path/to/output_dir [--max_depth N]"
     exit 1
@@ -9,9 +7,12 @@ INPUT_DIR="$1"
 OUTPUT_DIR="$2"
 MAX_DEPTH=""
 
-if [[ "$3" == "--max_depth" && -n "$4" ]]; then
-    MAX_DEPTH="$4"
-fi
+for ((i=3; i<=$#; i++)); do
+    if [[ "${!i}" == "--max_depth" ]]; then
+        ((i++))
+        MAX_DEPTH="${!i}"
+    fi
+done
 
 if [[ ! -d "$INPUT_DIR" ]]; then
     echo "Error: Input directory does not exist."
@@ -31,7 +32,7 @@ copy_files() {
     if [[ -n "$max_depth" ]]; then
         find "$input" -mindepth 1 -maxdepth "$max_depth" -type f
     else
-        find "$input" -type f
+        find "$input" -mindepth 1 -type f
     fi
 }
 
@@ -50,9 +51,9 @@ copy_files "$INPUT_DIR" "$OUTPUT_DIR" "$MAX_DEPTH" | while read -r filepath; do
         name="${filename%.*}"
         extension="${filename##*.}"
         if [[ "$name" == "$extension" ]]; then
-            new_filename="${name}${count}"
+            new_filename="${name}_${count}"
         else
-            new_filename="${name}${count}.${extension}"
+            new_filename="${name}_${count}.${extension}"
         fi
         cp "$filepath" "$OUTPUT_DIR/$new_filename"
     else
